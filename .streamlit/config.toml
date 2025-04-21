@@ -1,4 +1,5 @@
 [server]
-headless = true
+port = ${PORT}
 enableCORS = false
-port = 8000
+enableXsrfProtection = false
+headless = true
