@@ -5,7 +5,7 @@ from app.utils.bias_checker import detect_bias
 
 st.set_page_config(page_title="Loan Approval AI System", layout="centered")
 
-base_url = "https://web-production-1e211.up.railway.app"
+base_url = "base_url = "https://web-production-8a84a.up.railway.app"
 
 menu = st.sidebar.selectbox("📌 Select Page", ["🔍 Prediction", "📝 Feedback", "📊 Dashboard"])
 
