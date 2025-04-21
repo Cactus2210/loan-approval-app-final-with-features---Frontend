@@ -75,7 +75,7 @@ elif menu == "📝 Feedback":
                     "Approved" if model_response["prediction"] == "Rejected" else "Rejected"),
                 "reason": reason
             }
-            res = requests.post("http://localhost:8000/feedback", json=feedback_payload)
+            res = requests.post("https://web-production-1e211.up.railway.app", json=feedback_payload)
             if res.status_code == 200:
                 st.success("Feedback submitted successfully!")
             else:
@@ -83,7 +83,7 @@ elif menu == "📝 Feedback":
 
 elif menu == "📊 Dashboard":
     st.title("Feedback Dashboard")
-    res = requests.get("http://localhost:8000/dashboard")
+    res = requests.get("https://web-production-1e211.up.railway.app")
     if res.status_code == 200:
         data = res.json()
         st.metric("Total Feedbacks", data["total_feedbacks"])
