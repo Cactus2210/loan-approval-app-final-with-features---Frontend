@@ -1,8 +1,11 @@
 import streamlit as st
 import requests
 from frontend.utils import call_api
+from app.utils.bias_checker import detect_bias
 
 st.set_page_config(page_title="Loan Approval AI System", layout="centered")
+
+base_url = "https://web-production-1e211.up.railway.app"
 
 menu = st.sidebar.selectbox("📌 Select Page", ["🔍 Prediction", "📝 Feedback", "📊 Dashboard"])
 
@@ -22,10 +25,13 @@ if menu == "🔍 Prediction":
     }
 
     if st.button("Predict"):
-        result = call_api("/predict", form_data)
-        if "error" in result:
-            st.error(result["error"])
+        response = requests.post(f"{base_url}/predict", json=form_data)
+
+        if response.status_code != 200:
+            st.error("Prediction failed. Please try again.")
         else:
+            result = response.json()
+
             st.subheader("🔍 Prediction Result")
             st.success(f"Loan Status: {result['prediction']}")
             st.markdown("**Probability:**")
@@ -38,7 +44,6 @@ if menu == "🔍 Prediction":
                 st.markdown(f"- **{feature.replace('_', ' ').title()}**: {impact:+.3f}")
 
             # Bias check
-            from app.utils.bias_checker import detect_bias
             bias_result = detect_bias({k: v[1] if isinstance(v, list) else v for k, v in result["explanation"].items()})
             if bias_result["biased"]:
                 st.warning(f"⚠️ Bias Alert: Model relied heavily on **{bias_result['top_feature']}** (impact: {bias_result['impact']:.2f})")
@@ -59,7 +64,8 @@ elif menu == "📝 Feedback":
             "previous_loan_defaults_on_file": st.radio("Previous Defaults", ['Yes', 'No']) == 'Yes'
         }
 
-        model_response = call_api("/predict", input_data)
+        model_response = requests.post(f"{base_url}/predict", json=input_data).json()
+
         st.subheader("Model Prediction")
         st.json(model_response)
 
@@ -75,7 +81,8 @@ elif menu == "📝 Feedback":
                     "Approved" if model_response["prediction"] == "Rejected" else "Rejected"),
                 "reason": reason
             }
-            res = requests.post("https://web-production-1e211.up.railway.app", json=feedback_payload)
+
+            res = requests.post(f"{base_url}/feedback", json=feedback_payload)
             if res.status_code == 200:
                 st.success("Feedback submitted successfully!")
             else:
@@ -83,7 +90,7 @@ elif menu == "📝 Feedback":
 
 elif menu == "📊 Dashboard":
     st.title("Feedback Dashboard")
-    res = requests.get("https://web-production-1e211.up.railway.app")
+    res = requests.get(f"{base_url}/dashboard")
     if res.status_code == 200:
         data = res.json()
         st.metric("Total Feedbacks", data["total_feedbacks"])
